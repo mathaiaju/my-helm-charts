@@ -1,0 +1,20 @@
+{{- if .Values.autoscaling.enabled }}
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: {{ include "ibus-adapter-rest-helm.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "ibus-adapter-rest-helm.name" . }}
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "ibus-adapter-rest-helm.name" . }}
+  endpoints:
+    - port: http
+      scheme: http
+      path: '/actuator/prometheus'
+      honorLabels: true
+      interval: 15s
+{{- end }}

@@ -1,0 +1,73 @@
+# Default values for cerner-bdd-agent.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  # repository: hc-eu-west-aws-artifactory.cloud.health.ge.com/docker-clinical-care-apps-all/cerner-bdd-agent/cerner-bdd-agent
+  # registry: mathaiaju
+  # repository: mathaiaju/cerner-bdd-agent
+  tag: integ
+  pullPolicy: Never
+
+nameOverride: "cerner-bdd-agent"
+fullnameOverride: "cerner-bdd-agent"
+
+pod:
+  env:
+    - name: PATIENT_CSVFILE
+      value: ""
+    - name: PROFILES_ACTIVE
+      value: "default,3333,3331,6001,6002,EST3333,LSR3333,chromeEST3333,firefoxEST3333,edgeEST3333,chromeLSR3333,firefoxLSR3333,edgeLSR3333"
+    - name: PROFILES_LOCATION
+      value: ""
+    - name: NUMERIC_FREQUENCY
+      value: "2"
+    - name: WAVEFORM_FREQUENCY
+      value: "2"
+    - name: EVENT_FREQUENCY
+      value: "10"
+    - name: EVENT_DUTYCYCLE
+      value: "60"
+    - name: UNDERTOW_THREADS
+      value: "10"
+    - name: MAX_SCHEDULER_THREADS
+      value: "20"
+    - name: AGENT_REQUEST_HANDLER_POOLSIZE
+      value: "20"  
+    - name: JVM_TIME_ZONE
+      value: "GMT"
+    - name: NEW_RELIC_APP_NAME
+      value: "01_AM_cerner-bdd-agent"
+    - name: NEW_RELIC_DISTRIBUTED_TRACING_ENABLED
+      value: "true"
+    - name: NEW_RELIC_LICENSE_KEY
+      value: "f2d57613c68285d9899c630d88669738e8a6NRAL"
+    - name: NEW_RELIC_LOG
+      value: "newrelic_logfile.log"
+    - name: NEW_RELIC_PROCESS_HOST_DISPLAY_NAME
+      value: "galaxy-kube-cluster"
+    - name: NEW_RELIC_PROXY_HOST
+      value: "3.28.29.241"
+    - name: NEW_RELIC_PROXY_PORT
+      value: "88"    
+    - name: NEW_RELIC_PROXY_SCHEME
+      value: "http"  
+    - name: JAVA_OPTS
+      value: "-Xms1024M -Xmx3072M -XX:+UseG1GC -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -XX:HeapDumpPath=/heapdump -Dhttp.proxyHost=3.28.29.241 -Dhttps.proxyHost=3.28.29.241 -Dhttps.proxyPort=88 -Dserver.error.whitelabel.enabled=false -Dhttp.proxyPort=88"                 
+
+service:
+  name: cerner-bdd-agent-service
+  ports:
+    - port: 8095
+  
+resources:
+  limits:
+    cpu: 4
+    memory: 4096Mi
+  requests:
+    cpu: 2
+    memory: 2048Mi
+
+affinity: {}

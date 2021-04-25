@@ -1,0 +1,70 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ibus-adapter-stream-config
+  namespace: {{ .Release.Namespace }}
+data:
+  {{- if .Values.installation.prod }}
+  LOGGING_PROFILE: "prod,logToConsole"
+  {{- else }}
+  LOGGING_PROFILE: "dev,logToConsole"
+  SIMULATOR_URL: "ws://cerner-bdd-agent-service.{{ .Release.Namespace }}:8095//watchid-channel"
+  RESPONSEHANDLER_POOLSIZE: "40"
+  AGENT_QUEUE_DELAY: "10000"
+  {{- end }}
+  IBUS_BEARER_TOKEN: "eyJhbGciOiJub25lIn0.eyJpc3MiOiJodHRwczpcL1wvYXV0aG9yaXphdGlvbi5zYW5kYm94Y2VybmVyLmNvbVwvIiwiaWF0IjoxNTI2Mzc5OTA5LCJ1cm46Y2VybmVyOmF1dGhvcml6YXRpb246c3lzdGVtLWFjY291bnQtY3JlZGVudGlhbC10b2tlbjp2ZXJzaW9uOjEiOnsidmVyIjoiMS4wIiwic2VjcmV0IjoiZ1d1YWk0Z25scllMZlNXUUhSTzdmbTVjX3lOYUJieG4iLCJrZXkiOiI1Njk5NjVhNi0yOTY2LTQ3YTctOWJjMC01NzNjZDMxOWU4N2EifSwianRpIjoiZjJlMzBjM2UtMGRmMy00YzFiLWFlYmYtNmZjNDVkYTZjMWRlIn0."
+  IBUS_CONNECTION_CONSUMER_KEY: "569965a6-2966-47a7-9bc0-573cd319e87a"
+  IBUS_CONNECTION_CONSUMER_SECRET: "gWuai4gnlrYLfSWQHRO7fm5c_yNaBbxn"
+  IBUS_CONNECTION_END_POINT_URL: "wss://ibus-wsbridge.cloud-staging.sandboxcareaware.com"
+  IBUS_CONNECTION_ENV_NAME: "CLOUD_STAGING"
+  IBUS_CONNECTION_OAUTH_URL: "https://api.sandboxcernercare.com/oauth/access"
+  IBUS_TENANT_NAME: "CERN_PSH_CERT"
+  WAVE_MAPPER_FILE: /mapping/WaveformMapper.json
+  NUMERIC_MAPPER_FILE: /mapping/NumericMapper.json
+  EVENT_MAPPER_FILE: /mapping/EventMapper.json
+  CONFIG_MAPPER_FILE: /mapping/ConfigMapper.json
+  RABBITMQ_IP: "rabbitmq-svc"
+  CONTINIOUS_QUEUE: "false"
+  WAVEFORM_BUFFER: "2000"
+  {{- if .Values.proxy.enabled }}
+  JAVA_OPTS: "{{ .Values.proxy.jvmargs }} -Xms1024M -Xmx3072M -XX:+UnlockExperimentalVMOptions  -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -XX:HeapDumpPath=/heapdump"
+  NEW_RELIC_PROXY_HOST: "{{ .Values.proxy.newrelic_proxy_host }}"
+  NEW_RELIC_PROXY_PORT: "80"
+  NEW_RELIC_PROXY_SCHEME: "http"
+  {{- else }}
+  JAVA_OPTS: "-Xms1024M -Xmx3072M -XX:+UnlockExperimentalVMOptions  -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -XX:HeapDumpPath=/heapdump"
+  {{- end }}
+  NEW_RELIC_LICENSE_KEY: "f2d57613c68285d9899c630d88669738e8a6NRAL"
+  NEW_RELIC_APP_NAME: "{{ .Values.newrelic.appName }}"
+  NEW_RELIC_AGENT_ENABLED: "true"
+  NEW_RELIC_HIGH_SECURITY: "false"
+  NEW_RELIC_ENABLE_AUTO_APP_NAMING: "false"
+  NEW_RELIC_ENABLE_AUTO_TRANSACTION_NAMING: "true"
+  NEW_RELIC_LOG_LEVEL: "info"
+  NEW_RELIC_AUDIT_MODE: "false"
+  NEW_RELIC_LOG_FILE_COUNT: "1"
+  NEW_RELIC_LOG_LIMIT_IN_KBYTES: "0"
+  NEW_RELIC_LOG_DAILY: "false"
+  NEW_RELIC_LOG_FILE_NAME: "newrelic_agent.log"
+  NEW_RELIC_MAX_STACK_TRACE_LINES: "30"
+  NEW_RELIC_TRANSACTION_TRACER_ENABLED: "true"
+  NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD: "apdex_f"
+  NEW_RELIC_TRANSACTION_TRACER_RECORD_SQL: "obfuscated"
+  NEW_RELIC_TRANSACTION_TRACER_LOG_SQL: "false"
+  NEW_RELIC_TRANSACTION_TRACER_STACK_TRACE_THRESHOLD: "0.5"
+  NEW_RELIC_TRANSACTION_TRACER_EXPLAIN_ENABLED: "true"
+  NEW_RELIC_TRANSACTION_TRACER_EXPLAIN_THRESHOLD: "0.5"
+  NEW_RELIC_TRANSACTION_TRACER_TOP_N: "20"
+  NEW_RELIC_ERROR_COLLECTOR_ENABLED: "true"
+  NEW_RELIC_ERROR_COLLECTOR_IGNORE_ERRORS: "akka.actor.ActorKilledException"
+  NEW_RELIC_ERROR_COLLECTOR_IGNORE_STATUS_CODES: "404"
+  NEW_RELIC_TRANSACTION_EVENTS_ENABLED: "true"
+  NEW_RELIC_TRANSACTION_EVENTS_MAX_SAMPLES_STORED: "2000"
+  NEW_RELIC_DISTRIBUTED_TRACING_ENABLED: "true"
+  NEW_RELIC_CROSS_APPLICATION_TRACER_ENABLED: "false"
+  NEW_RELIC_THREAD_PROFILER_ENABLED: "true"
+  NEW_RELIC_BROWSER_MONITORING_AUTO_INSTRUMENT: "true"
+  NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_SERVLET_USER_ENABLED: "false"
+  NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_SPRING_AOP_2_ENABLED: "false"
+  NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_JDBC_RESULTSET_ENABLED: "false"
+  NEW_RELIC_CLASS_TRANSFORMER_CLASSLOADER_EXCLUDES: "groovy.lang.GroovyClassLoader$InnerLoader,org.codehaus.groovy.runtime.callsite.CallSiteClassLoader, com.collaxa.cube.engine.deployment.BPELClassLoader, org.springframework.data.convert.ClassGeneratingEntityInstantiator$ObjectInstantiatorClassGenerator, org.mvel2.optimizers.impl.asm.ASMAccessorOptimizer$ContextClassLoader, gw.internal.gosu.compiler.SingleServingGosuClassLoader"
