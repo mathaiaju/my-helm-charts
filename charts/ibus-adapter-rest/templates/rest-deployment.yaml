@@ -1,0 +1,345 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ibus-adapter-rest-helm.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    name: {{ include "ibus-adapter-rest-helm.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ include "ibus-adapter-rest-helm.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "ibus-adapter-rest-helm.name" . }}
+    spec:
+      {{- if .Values.proxy.enabled }}
+      hostAliases:
+        - ip: {{ .Values.proxy.hostAliasIP }}
+          hostnames:
+            - {{ .Values.proxy.hostAliasName }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            {{- if not .Values.installation.prod }}
+            - name: {{ .Values.envnames.SIMULATOR_URL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.SIMULATOR_URL }}
+            - name: {{ .Values.envnames.RESPONSEHANDLER_POOLSIZE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.RESPONSEHANDLER_POOLSIZE }}
+            - name: {{ .Values.envnames.AGENT_QUEUE_DELAY }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.AGENT_QUEUE_DELAY }}
+            {{- end }}
+            - name: {{ .Values.envnames.LOGGING_PROFILE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.LOGGING_PROFILE }}
+            - name: DEFAULT_IBUS_CONNECTION_STATUS
+              value: "false"
+            - name: {{ .Values.envnames.STREAM_INFO_COLLECT_DURATION }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.STREAM_INFO_COLLECT_DURATION }}
+            - name: {{ .Values.envnames.STREAM_INFO_URL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.STREAM_INFO_URL }}
+            - name: {{ .Values.envnames.IBUS_BEARER_TOKEN }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.IBUS_BEARER_TOKEN }}
+            - name: {{ .Values.envnames.IBUS_CONNECTION_CONSUMER_KEY }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.IBUS_CONNECTION_CONSUMER_KEY }}
+            - name: {{ .Values.envnames.IBUS_CONNECTION_CONSUMER_SECRET }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.IBUS_CONNECTION_CONSUMER_SECRET }}
+            - name: {{ .Values.envnames.IBUS_CONNECTION_END_POINT_URL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.IBUS_CONNECTION_END_POINT_URL }}
+            - name: {{ .Values.envnames.IBUS_CONNECTION_ENV_NAME }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.IBUS_CONNECTION_ENV_NAME }}
+            - name: {{ .Values.envnames.IBUS_TENANT_NAME }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.IBUS_TENANT_NAME }}
+            - name: {{ .Values.envnames.IBUS_CONNECTION_OAUTH_URL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.IBUS_CONNECTION_OAUTH_URL }}
+            - name: {{ .Values.envnames.WAVE_MAPPER_FILE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.WAVE_MAPPER_FILE }}
+            - name: {{ .Values.envnames.NUMERIC_MAPPER_FILE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.NUMERIC_MAPPER_FILE }}
+            - name: {{ .Values.envnames.EVENT_MAPPER_FILE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.EVENT_MAPPER_FILE }}
+            - name: {{ .Values.envnames.CONFIG_MAPPER_FILE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.CONFIG_MAPPER_FILE }}
+            - name: {{ .Values.envnames.RABBITMQ_IP }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.RABBITMQ_IP }}
+            - name: {{ .Values.envnames.RABBITMQ_USERNAME }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rabbitmq.secretName }}
+                  key: {{ .Values.rabbitmq.userKeyName }}
+            - name: {{ .Values.envnames.RABBITMQ_PASSWORD }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rabbitmq.secretName }}
+                  key: {{ .Values.rabbitmq.passwordKeyName }}
+            - name: {{ .Values.envnames.REST_JAVA_OPTS }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.REST_JAVA_OPTS }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_APP_NAME }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_APP_NAME }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_LICENSE_KEY }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_LICENSE_KEY }}
+            {{- if .Values.proxy.enabled }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_PROXY_HOST }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_PROXY_HOST }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_PROXY_PORT }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_PROXY_PORT }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_PROXY_SCHEME }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_PROXY_SCHEME }}
+            {{- end }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_AGENT_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_AGENT_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_HIGH_SECURITY }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_HIGH_SECURITY }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_ENABLE_AUTO_APP_NAMING }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_ENABLE_AUTO_APP_NAMING }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_ENABLE_AUTO_TRANSACTION_NAMING }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_ENABLE_AUTO_TRANSACTION_NAMING }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_LEVEL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_LEVEL }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_AUDIT_MODE }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_AUDIT_MODE }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_FILE_COUNT }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_FILE_COUNT }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_LIMIT_IN_KBYTES }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_LIMIT_IN_KBYTES }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_DAILY }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_DAILY }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_FILE_NAME }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_LOG_FILE_NAME }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_MAX_STACK_TRACE_LINES }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_MAX_STACK_TRACE_LINES }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_RECORD_SQL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_RECORD_SQL }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_LOG_SQL }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_LOG_SQL }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_STACK_TRACE_THRESHOLD }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_STACK_TRACE_THRESHOLD }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_EXPLAIN_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_EXPLAIN_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_EXPLAIN_THRESHOLD }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_EXPLAIN_THRESHOLD }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_TOP_N }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_TRACER_TOP_N }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_ERROR_COLLECTOR_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_ERROR_COLLECTOR_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_ERROR_COLLECTOR_IGNORE_ERRORS }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_ERROR_COLLECTOR_IGNORE_ERRORS }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_ERROR_COLLECTOR_IGNORE_STATUS_CODES }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_ERROR_COLLECTOR_IGNORE_STATUS_CODES }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_EVENTS_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_EVENTS_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_EVENTS_MAX_SAMPLES_STORED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_TRANSACTION_EVENTS_MAX_SAMPLES_STORED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_DISTRIBUTED_TRACING_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_DISTRIBUTED_TRACING_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_CROSS_APPLICATION_TRACER_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_CROSS_APPLICATION_TRACER_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_THREAD_PROFILER_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_THREAD_PROFILER_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_BROWSER_MONITORING_AUTO_INSTRUMENT }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_BROWSER_MONITORING_AUTO_INSTRUMENT }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_SERVLET_USER_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_SERVLET_USER_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_SPRING_AOP_2_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_SPRING_AOP_2_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_JDBC_RESULTSET_ENABLED }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_JDBC_RESULTSET_ENABLED }}
+            - name: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_CLASSLOADER_EXCLUDES }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Values.configs.configMapName }}
+                  key: {{ .Values.envnames.newrelic.NEW_RELIC_CLASS_TRANSFORMER_CLASSLOADER_EXCLUDES }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

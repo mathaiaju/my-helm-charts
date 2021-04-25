@@ -1,0 +1,19 @@
+{{- $serviceName := (toString .Values.serviceName) }}
+{{- $replicas := int (toString .Values.replicaCount) }}
+{{- $port := int (toString .Values.port) }}
+{{- $appName := include "ibus-adapter-stream-helm.name" . }}
+{{- range $i := until $replicas }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName }}-{{ $i }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: {{ $port }}
+  selector:
+    app: {{ $appName }}
+    "statefulset.kubernetes.io/pod-name": {{ $appName }}-{{ $i }}
+{{- end }}

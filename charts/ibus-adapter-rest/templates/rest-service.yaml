@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ibus-adapter-rest-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "ibus-adapter-rest-helm.name" . }}
+spec:
+  selector:
+    app: {{ include "ibus-adapter-rest-helm.name" . }}
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080    #This is Required for Prometheus Service Monitor
+      protocol: TCP
